@@ -1,0 +1,326 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "8e72dfd7-3e57-4ea9-a36f-4c41c2f0e36d": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 140,
+                    "y": 200
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "c74d957d-7189-4946-9cc6-e8a9f688e01d": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 320,
+                    "y": 120
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "710563cf-bf49-46af-82f0-b6269d81ecbd": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 60,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "e6a6f876-e81c-4bb6-9ebb-67d1aacc51e7": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 140,
+                    "y": -20
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "78703767-3d1b-4638-940f-648e9b376db7": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 180,
+                    "y": 100
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "38788418-e475-44b2-974a-33fecfc68790": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 350,
+                    "y": -10
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "710563cf-bf49-46af-82f0-b6269d81ecbd"
+                ]
+            },
+            "ca7819e9-7ea3-479b-9e24-72dba3ae356a": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 510,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "c74d957d-7189-4946-9cc6-e8a9f688e01d"
+                ]
+            }
+        }
+    },
+    "Parameters": {
+        "BucketName": {
+            "Description": "Unique name for your bucket. This will be in the S3 url.",
+            "Type": "String"
+        },
+        "DefaultRootObject": {
+            "Description": "The default path for the index document.",
+            "Type": "String",
+            "Default": "index.html"
+        },
+        "ErrorPagePath": {
+            "Description": "The path of the error page for the website (e.g. /error.html). Must be a root-relative path.",
+            "Type": "String",
+            "Default": "/error.html"
+        }
+    },
+    "Resources": {
+        "TheBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "BucketName"
+                },
+                "AccessControl": "PublicRead",
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html",
+                    "ErrorDocument": "index.html"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "710563cf-bf49-46af-82f0-b6269d81ecbd"
+                },
+                "id": "8499ab3d-0070-4ec8-857b-e504ea50b7ce"
+            }
+        },
+        "TheBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "TheBucket"
+                },
+                "PolicyDocument": {
+                    "Id": "BucketPolicy",
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "s3:GetObject",
+                            "Effect": "Allow",
+                            "Resource": {
+                                "Fn::Sub": "arn:aws:s3:::${TheBucket}/*"
+                            },
+                            "Principal": {
+                                "CanonicalUser": {
+                                    "Fn::GetAtt": [
+                                        "CloudFrontOriginAccessIdentity",
+                                        "S3CanonicalUserId"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "38788418-e475-44b2-974a-33fecfc68790"
+                }
+            }
+        },
+        "CloudFrontOriginAccessIdentity": {
+            "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+            "Properties": {
+                "CloudFrontOriginAccessIdentityConfig": {
+                    "Comment": {
+                        "Ref": "TheBucket"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "e6a6f876-e81c-4bb6-9ebb-67d1aacc51e7"
+                }
+            }
+        },
+        "TheCFDistribution": {
+            "Type": "AWS::CloudFront::Distribution",
+            "Properties": {
+                "DistributionConfig": {
+                    "CustomErrorResponses": [
+                        {
+                            "ErrorCode": 403,
+                            "ResponseCode": 404,
+                            "ResponsePagePath": {
+                                "Ref": "ErrorPagePath"
+                            }
+                        }
+                    ],
+                    "DefaultCacheBehavior": {
+                        "AllowedMethods": [
+                            "GET",
+                            "HEAD",
+                            "OPTIONS"
+                        ],
+                        "CachedMethods": [
+                            "GET",
+                            "HEAD",
+                            "OPTIONS"
+                        ],
+                        "Compress": true,
+                        "DefaultTTL": 3600,
+                        "ForwardedValues": {
+                            "Cookies": {
+                                "Forward": "none"
+                            },
+                            "QueryString": true
+                        },
+                        "MaxTTL": 86400,
+                        "MinTTL": 60,
+                        "TargetOriginId": "s3Origin",
+                        "ViewerProtocolPolicy": "allow-all",
+                        "LambdaFunctionAssociations": [
+                            {
+                                "EventType": "origin-response",
+                                "LambdaFunctionARN": {
+                                    "Ref": "TheABTestLambdaVersion"
+                                }
+                            }
+                        ]
+                    },
+                    "DefaultRootObject": {
+                        "Ref": "DefaultRootObject"
+                    },
+                    "Enabled": "true",
+                    "HttpVersion": "http2",
+                    "Comment": "For Lambda@Edge",
+                    "Origins": [
+                        {
+                            "DomainName": {
+                                "Fn::GetAtt": [
+                                    "TheBucket",
+                                    "DomainName"
+                                ]
+                            },
+                            "Id": "s3Origin",
+                            "S3OriginConfig": {
+                                "OriginAccessIdentity": {
+                                    "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+                                }
+                            }
+                        }
+                    ],
+                    "PriceClass": "PriceClass_All"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "8e72dfd7-3e57-4ea9-a36f-4c41c2f0e36d"
+                }
+            }
+        },
+        "LambdaEdgeFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "AllowLambdaServiceToAssumeRole",
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com",
+                                    "edgelambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "78703767-3d1b-4638-940f-648e9b376db7"
+                }
+            }
+        },
+        "TheABTestLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Runtime": "nodejs12.x",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaEdgeFunctionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "ZipFile": "const contentv1 = \"<p>Hello from Lambda@Edge v1!</p>\"\nconst contentv2 = \"<p>Hello from Lambda@Edge v2!</p>\";\nexports.handler = (event, context, callback) => {\n  const randomResponse = Math.random() >= 0.5;\n  let content = contentv1;\n  if(randomResponse){\n      content = contentv2;\n  }\n  const response = {\n    \"status\" : \"200\",\n    \"statusDescription\" : \"OK\",\n    \"headers\": {\n      \"cache-control\": [{\n        \"key\": \"Cache-Control\",\n        \"value\": \"max-age=100\"\n      }],\n      \"content-type\": [{\n        \"key\": \"Content-Type\",\n        \"value\": \"text/html\"\n      }],\n      \"content-encoding\": [{\n        \"key\" : \"Content-Encoding\",\n        \"value\": \"UTF-8\"\n      }],\n    },\n    \"body\": content\n};\ncallback(null, response);\n};\n"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "c74d957d-7189-4946-9cc6-e8a9f688e01d"
+                }
+            }
+        },
+        "TheABTestLambdaVersion": {
+            "Type": "AWS::Lambda::Version",
+            "Properties": {
+                "FunctionName": {
+                    "Ref": "TheABTestLambda"
+                },
+                "Description": "v1"
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "ca7819e9-7ea3-479b-9e24-72dba3ae356a"
+                }
+            }
+        }
+    }
+}
