@@ -5,6 +5,12 @@ Lambda@Edge es una característica de Amazon CloudFront que permite ejecutar el 
 
 En este repositorio entontraras un template de Cloudformation para que puedas experimentar, junto con el video de [Youtube de Leo Codigo](https://www.youtube.com/channel/UCfOCW9QaQRzO3rGvHSYJsiQ)
 
+
+La arquitectura es como se muestra en la siguiente imagen:
+
+[<img src="https://s3.amazonaws.com/templates-cf.cancunlabs.com/images/lambda-at-edge-leo-codigo.png">](https://s3.amazonaws.com/templates-cf.cancunlabs.com/images/lambda-at-edge-leo-codigo.png)
+
+
 [<img src="https://s3.amazonaws.com/templates-cf.cancunlabs.com/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=LambdaAtEdgeTest&templateURL=https://s3.amazonaws.com/templates-cf.cancunlabs.com/lambda-at-edge.template)
 
 
